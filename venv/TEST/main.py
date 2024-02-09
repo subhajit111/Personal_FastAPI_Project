@@ -1,30 +1,14 @@
-from TEST.database import engine, SessionLocal
-from TEST import models
-from distutils.core import setup
-from xml.etree.ElementTree import fromstring
-from fastapi import FastAPI, status, HTTPException, Response, Depends
-from pydantic import BaseModel
-import psycopg2
-from psycopg2.extras import RealDictCursor
-from sqlalchemy.orm import Session
+from TEST.database import engine, SessionLocal, get_db
+from TEST import models, database
+from fastapi import FastAPI,Depends
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-
+from TEST.routers import post, users, auth
 
 models.Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
 
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@app.get("/test")
-def test_func(db: Session = Depends(get_db)):
-    return {"message":"success"}
+# this object is used to connect to the specific routers of other files like post.router, users.router
+app.include_router(post.router)
+app.include_router(users.router)
+app.include_router(auth.router)
